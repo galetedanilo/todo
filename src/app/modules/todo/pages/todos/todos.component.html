@@ -1,0 +1,42 @@
+<div class="flex flex-col">
+  <div class="flex justify-between items-center">
+    <h2 class="font-bold text-xl">Manage Todos</h2>
+    <div class="flex items-center">
+      <span class="font-bold px-5 text-x text-red-900"
+        >Total: {{ store.todosCount() }}</span
+      >
+      <button
+        class="btn btn-icon btn-rouded btn-primary"
+        (click)="store.setSelectId(-1)"
+      >
+        <i class="ri-add-line ri-lg"></i>
+        Add Todo
+      </button>
+    </div>
+  </div>
+
+  <div class="mt-3 bg-white shadow">
+    @for (item of store.entities(); track $index) {
+    <app-todo-card
+      [todo_type]="item.status"
+      [todo]="item"
+      (click)="store.setSelectId(item.id)"
+    />
+    } @empty {
+    <h2>There are not todos</h2>
+    }
+  </div>
+</div>
+
+<app-slide-panel
+  [isOpen]="store.isSelected()"
+  [headerTitle]="'ToDo Details'"
+  (onClose)="store.setSelectId(null)"
+>
+  <app-todo-form
+    (cancel)="store.setSelectId(null)"
+    (formSubmit)="onSubmit($event)"
+    [selected]="store.selectedEntity()"
+    [loading]="store.is_loading()"
+  />
+</app-slide-panel>

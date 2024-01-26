@@ -1,0 +1,71 @@
+<form [formGroup]="form" (ngSubmit)="onSubmit()" autocomplete="off" novalidate>
+  <div class="form-group mb-3">
+    <label for="title">Title</label>
+    <input
+      id="title"
+      type="text"
+      placeholder="Enter the title"
+      class="form-control"
+      formControlName="title"
+      [class]="{
+        invalid:
+          form.get('title')?.hasError('required') && form.get('title')?.touched,
+        valid: form.get('title')?.valid
+      }"
+    />
+    @if(form.get('title')?.hasError('required') && form.get('title')?.touched) {
+    <span class="form-error">Title is required</span>
+    }
+  </div>
+
+  <div class="form-group mb-3">
+    <label for="description">Description</label>
+    <textarea
+      id="description"
+      rows="10"
+      placeholder="Enter the description"
+      class="form-control"
+      formControlName="description"
+      [class]="{
+        invalid:
+          form.get('description')?.hasError('required') &&
+          form.get('description')?.touched,
+        valid: form.get('description')?.valid
+      }"
+    >
+    </textarea>
+    @if(form.get('description')?.hasError('required') &&
+    form.get('description')?.touched) {
+    <span class="form-error">Description is required</span>
+    }
+  </div>
+
+  <div class="form-group mb-3">
+    <label for="status">Status</label>
+    <select
+      class="form-select"
+      id="status"
+      [class]="{
+        invalid:
+          form.get('status')?.hasError('required') &&
+          form.get('status')?.touched,
+        valid: form.get('status')?.valid
+      }"
+      formControlName="status"
+    >
+      @for (item of status(); track $index) {
+      <option [value]="item">{{ item }}</option>
+      }
+    </select>
+    @if (form.get('status')?.hasError('required') &&
+    form.get('status')?.touched) {
+    <span class="form-error">Status is required.</span>
+    }
+  </div>
+  <div class="flex gap-2">
+    <button type="submit" class="btn btn-success">Submit</button>
+    <button type="button" class="btn btn-secondary" (click)="onCancel()">
+      Cancel
+    </button>
+  </div>
+</form>

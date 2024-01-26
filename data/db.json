@@ -1,0 +1,28 @@
+{
+  "todos": [
+    {
+      "id": 1,
+      "title": "boii novo",
+      "description": "dat",
+      "status": "OPEN"
+    },
+    {
+      "id": 2,
+      "title": "Floi",
+      "description": "fdsf",
+      "status": "PROGRESS"
+    },
+    {
+      "id": 3,
+      "title": "novo",
+      "description": "dfds",
+      "status": "PROGRESS"
+    },
+    {
+      "id": 4,
+      "title": "Deu certo",
+      "description": "dfoo",
+      "status": "OPEN"
+    }
+  ]
+}
