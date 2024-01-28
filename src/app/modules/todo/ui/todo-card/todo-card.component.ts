@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { ITodoResponse } from '../../responses';
 import { TTodoStatus } from '../../types';
 
@@ -12,4 +12,7 @@ import { TTodoStatus } from '../../types';
 export class TodoCardComponent {
   @Input() todo_type: TTodoStatus = 'OPEN';
   @Input() todo!: ITodoResponse;
+
+  @Output() viewEmitter = new EventEmitter<void>();
+  @Output() removeEmitter = new EventEmitter<void>();
 }

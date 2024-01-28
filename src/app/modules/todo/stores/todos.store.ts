@@ -1,5 +1,5 @@
 import { InjectionToken, computed, inject } from '@angular/core';
-import { TTodosState } from '../types';
+import { TTodosCallState, TTodosMeta } from '../types';
 import {
   patchState,
   signalStore,
@@ -13,7 +13,6 @@ import { TodoService } from '../services/todo.service';
 import {
   catchError,
   concatMap,
-  exhaustMap,
   finalize,
   of,
   pipe,
@@ -22,104 +21,144 @@ import {
 } from 'rxjs';
 import {
   addEntities,
-  setEntities,
-  setEntity,
-  updateEntities,
+  removeEntity,
+  updateEntity,
   withEntities,
 } from '@ngrx/signals/entities';
-import { withSelectedEntity } from '../features';
+import {
+  setError,
+  setLoaded,
+  setLoading,
+  withSelectedEntity,
+} from '../features';
 import { ITodoResponse } from '../responses';
 import { ITodoRequest } from '../requests/todos';
 
-const initialState: TTodosState = {
-  is_loading: false,
-  error: null,
+const initialState: TTodosMeta = {
+  lastRefreshed: null,
+  lastUpdated: null,
 };
 
-const TODOS_STATE = new InjectionToken<TTodosState>('TodosState', {
+const TODOS_META = new InjectionToken<TTodosMeta>('TodosMeta', {
   factory: () => initialState,
 });
 
 export const TodosStore = signalStore(
-  withState(() => inject(TODOS_STATE)),
+  withState(() => inject(TODOS_META)),
+  withState<{ callState: TTodosCallState }>({ callState: 'init' }),
   withEntities<ITodoResponse>(),
   withSelectedEntity(),
-  withComputed(({ entities }) => ({
+  withComputed(({ entities, callState }) => ({
     todosCount: computed(() => entities().length),
+    loading: computed(() => callState() === 'loading'),
+    loaed: computed(() => callState() === 'loaded'),
+    error: computed(() => {
+      const state = callState();
+
+      return typeof state === 'object' ? state.error : null;
+    }),
   })),
   withMethods((store, todoService = inject(TodoService)) => ({
     getAll: rxMethod<void>(
       pipe(
-        tap(() => patchState(store, { is_loading: true })),
+        tap(() => patchState(store, setLoading())),
         switchMap(() =>
           todoService.getAllTodo().pipe(
-            tap((entities) => patchState(store, addEntities(entities))),
+            tap((entities) =>
+              patchState(store, addEntities(entities), {
+                lastRefreshed: new Date(),
+              })
+            ),
             catchError(() => {
-              patchState(store, { error: 'Ouve um error' });
+              patchState(
+                store,
+                setError('Não foi possivel recuperar os dados')
+              );
               return of([]);
             }),
-            finalize(() => patchState(store, { is_loading: false }))
+            finalize(() => patchState(store, setLoaded()))
           )
         )
       )
     ),
+
     createTodo: rxMethod<ITodoRequest>(
       pipe(
-        tap(() => patchState(store, { is_loading: true })),
+        tap(() => patchState(store, setLoading())),
         concatMap((todo) =>
           todoService.createTodo(todo).pipe(
             concatMap(() =>
               todoService.getAllTodo().pipe(
                 tap((entities) => {
-                  patchState(store, { selectedEntityId: null });
-                  patchState(store, addEntities(entities));
+                  const date = new Date();
+
+                  patchState(store, addEntities(entities), {
+                    selectedEntityId: null,
+                    lastUpdated: date,
+                    lastRefreshed: date,
+                  });
                 })
               )
             ),
             catchError(() => {
-              patchState(store, { error: 'Ouve um erro ao criar nova tarefa' });
+              patchState(store, setError('Ouve um erro ao criar nova tarefa'));
               return of();
             }),
-            finalize(() => patchState(store, { is_loading: false }))
+            finalize(() => patchState(store, setLoaded()))
           )
         )
       )
     ),
+
     updateTodo: rxMethod<{ params: ITodoRequest; id: number | string }>(
       pipe(
-        tap((data) => {
-          patchState(
-            store,
-            setEntities({
-              
-              title: data.params.title,
-              description: data.params.description,
-              status: data.params.status,
-            })
-          );
-          patchState(store, { is_loading: true });
+        tap(() => {
+          patchState(store, setLoading());
         }),
-        concatMap((data) =>
-          todoService.updateTodo(data.params, data.id).pipe(
-            concatMap(() =>
-              todoService.getAllTodo().pipe(
-                tap((entities) => {
-                  patchState(store, { selectedEntityId: null });
-                  patchState(store, setEntities(entities));
-                })
+        concatMap((todo) =>
+          todoService.updateTodo(todo.params, todo.id).pipe(
+            tap(() =>
+              patchState(
+                store,
+                updateEntity({
+                  id: todo.id,
+                  changes: {
+                    title: todo.params.title,
+                    description: todo.params.description,
+                    status: todo.params.status,
+                  },
+                }),
+                { lastUpdated: new Date(), selectedEntityId: null }
               )
             ),
             catchError(() => {
-              patchState(store, {
-                error: 'Ouve um erro ao atualizar a tarefa',
-              });
+              patchState(store, setError('Ouve um erro ao atualizar a tarefa'));
               return of();
             }),
-            finalize(() => patchState(store, { is_loading: false }))
+            finalize(() => patchState(store, setLoaded()))
           )
         )
       )
     ),
+
+    removeTodo: rxMethod<number | string>(
+      pipe(
+        tap(() => patchState(store, setLoading())),
+        concatMap((id) =>
+          todoService.removeTodo(id).pipe(
+            tap(() =>
+              patchState(store, removeEntity(id), { lastUpdated: new Date() })
+            ),
+            catchError(() => {
+              patchState(store, setError('Ouve um erro ao remover a tarefa'));
+              return of();
+            })
+          )
+        ),
+        finalize(() => patchState(store, setLoaded()))
+      )
+    ),
+
     setSelectId(id: string | number | null): void {
       patchState(store, { selectedEntityId: id });
     },

@@ -3,11 +3,12 @@ import { SlidePanelComponent, TodoCardComponent } from '../../ui';
 import { TodosStore } from '../../stores/todos.store';
 import { TodoFormComponent } from '../../components/todo-form/todo-form.component';
 import { ITodoSubmit } from '../../interfaces';
+import { DatePipe } from '@angular/common';
 
 @Component({
   selector: 'app-todos',
   standalone: true,
-  imports: [TodoCardComponent, SlidePanelComponent, TodoFormComponent],
+  imports: [DatePipe, TodoCardComponent, SlidePanelComponent, TodoFormComponent],
   providers: [TodosStore],
   templateUrl: './todos.component.html',
   styleUrl: './todos.component.scss',

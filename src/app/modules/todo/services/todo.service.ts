@@ -29,4 +29,10 @@ export class TodoService {
       .put<ITodoResponse>(CApiResources.TodoEndpoint.updateTodo(id), params)
       .pipe(first());
   }
+
+  removeTodo(id: number | string): Observable<never> {
+    return this.#http
+      .delete<never>(CApiResources.TodoEndpoint.removeTodo(id))
+      .pipe(first());
+  }
 }

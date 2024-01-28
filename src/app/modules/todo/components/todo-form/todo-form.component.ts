@@ -49,12 +49,16 @@ export class TodoFormComponent extends TodoFormHelper {
 
       const _selected = this.selected();
 
-      if (_selected)
+      if (_selected && !this.form.get('id')?.value)
         this.form.setValue({
           ..._selected,
           id: _selected.id.toString(),
         });
-      else this.form.reset();
+
+      if (_selected === null) {
+        this.form.reset();
+        this.form.get('status')?.setValue('OPEN');
+      }
     });
   }
 
@@ -68,5 +72,6 @@ export class TodoFormComponent extends TodoFormHelper {
 
   onCancel() {
     this.cancel.emit();
+    this.form.reset();
   }
 }

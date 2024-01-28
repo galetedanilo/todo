@@ -1,13 +1,10 @@
 import { Component, EventEmitter, Output } from '@angular/core';
 
 import {
-  FormBuilder,
-  FormControl,
-  FormGroup,
   ReactiveFormsModule,
-  Validators,
 } from '@angular/forms';
 import { ILoginRequest } from '../../requests';
+import { LoginFormHelper } from '../../helpers';
 
 @Component({
   selector: 'app-login-form',
@@ -16,15 +13,11 @@ import { ILoginRequest } from '../../requests';
   templateUrl: './login-form.component.html',
   styleUrl: './login-form.component.scss',
 })
-export class LoginFormComponent {
+export class LoginFormComponent extends LoginFormHelper {
   @Output() formSubmit = new EventEmitter<ILoginRequest>();
-  form!: FormGroup;
 
-  constructor(private readonly fb: FormBuilder) {
-    this.form = this.fb.group({
-      email: new FormControl('', [Validators.required, Validators.email]),
-      password: new FormControl('', Validators.required),
-    });
+  constructor() {
+    super();
   }
 
   onSubmit() {

@@ -2,6 +2,14 @@
   <div class="flex justify-between items-center">
     <h2 class="font-bold text-xl">Manage Todos</h2>
     <div class="flex items-center">
+      <span class="font-bold text-gray-500 pr-4">
+        Ultima atualização: {{ store.lastRefreshed() | date:'d/MM/yyyy hh:mm' }}
+      </span>
+      <span class="font-bold text-gray-500">
+        Ultima alteração: {{ store.lastUpdated() | date:'d/MM/yyyy hh:mm' }}
+      </span>
+    </div>
+    <div class="flex items-center">
       <span class="font-bold px-5 text-x text-red-900"
         >Total: {{ store.todosCount() }}</span
       >
@@ -20,7 +28,8 @@
     <app-todo-card
       [todo_type]="item.status"
       [todo]="item"
-      (click)="store.setSelectId(item.id)"
+      (viewEmitter)="store.setSelectId(item.id)"
+      (removeEmitter)="store.removeTodo(item.id)"
     />
     } @empty {
     <h2>There are not todos</h2>
@@ -37,6 +46,6 @@
     (cancel)="store.setSelectId(null)"
     (formSubmit)="onSubmit($event)"
     [selected]="store.selectedEntity()"
-    [loading]="store.is_loading()"
+    [loading]="store.loading()"
   />
 </app-slide-panel>
